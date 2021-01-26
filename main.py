@@ -1,13 +1,14 @@
 import socket
 
 class TCPServer:
-    host = '127.0.0.1'  # server address
-    port = 8000 # server port
+    def __init__(self, host = '127.0.0.1', port = 8888):
+        self.host = host
+        self.port = port
 
     def start(self):
         # socket object
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # bind the socket object to the address and port
         s.bind((self.host, self.port))
 
@@ -25,7 +26,7 @@ class TCPServer:
             # read first 1024 bytes sent by client
             data = conn.recv(1024)
 
-            print(data)
+            response = self.handle_request(data)
 
             # send back data to client
             conn.sendall(data)
@@ -33,6 +34,19 @@ class TCPServer:
             # close the connection
             conn.close()
 
+    def handle_request(self, data):
+        return data
+
+class HTTPServer(TCPServer):
+    def handle_request(self, data):
+        response_line = b"HTTP/1.1 200 OK\r\n"
+
+        blank_line = b"\r\n"
+
+        response_body = b"Request received!"
+
+        return b"".join([response_line, blank_line, response_body])
+
 if __name__ == '__main__':
-    server = TCPServer()
+    server = HTTPServer()
     server.start()
